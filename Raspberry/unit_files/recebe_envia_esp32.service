@@ -1,0 +1,12 @@
+[Unit]
+Description=Servico de envio e recepcao de dados do ESP32 via UART
+
+[Service]
+Type=simple
+ExecStart=/home/pi/recebe_envia_dados_uart/recebe_envia_dados_uart
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Restart=on-failure

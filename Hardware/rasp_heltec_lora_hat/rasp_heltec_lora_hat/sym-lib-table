@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name rasp_heltec_lora_hat-rescue)(type Legacy)(uri ${KIPRJMOD}/rasp_heltec_lora_hat-rescue.lib)(options "")(descr ""))
+)

@@ -1,0 +1,17 @@
+/* Header file com as definições das prioridades */
+#ifndef LORAWAN_DEFS_H
+#define LORAWAN_DEFS_H
+
+/* Definições - modo de envio (com ou sem confirmação) */
+#define ENVIO_SEM_CONFIRMACAO    0
+#define ENVIO_COM_CONFIRMACAO    1
+
+/* Constantes do LoraWAN */
+/* - Chaves (network e application keys) */
+static const PROGMEM u1_t NWKSKEY[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+static const u1_t PROGMEM APPSKEY[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+/* - Device Address */
+static const u4_t DEVADDR = 0x00000000;
+
+#endif
