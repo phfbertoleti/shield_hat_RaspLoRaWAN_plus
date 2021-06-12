@@ -8,7 +8,7 @@ Este é o repositório oficial do shield/hat RaspLoRaWAN+. Este sheild/hat forne
 * Interação com dispositivos (sensores, por exemplo) I²C, com nível de tensão de 3V3
 * Escrita, linha a linha, no display OLED do Heltec ESP32 WiFi LoRa
 
-![Foto do shield/hat RaspLoraWAN+](https://github.com/phfbertoleti/shield_hat_RaspLoRaWAN_plus/Imagens/shield_rasplorawan+_1.jpg)
+![Foto do shield/hat RaspLoraWAN+](https://github.com/phfbertoleti/shield_hat_RaspLoRaWAN_plus/blob/main/Imagens/shield_rasplorawan%2B_1.jpg)
 
 ## Funcionamento e estrutura básica dos códigos-fonte
 
