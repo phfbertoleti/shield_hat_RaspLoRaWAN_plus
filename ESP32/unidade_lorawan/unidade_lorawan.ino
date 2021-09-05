@@ -9,6 +9,7 @@
 #include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
+#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "FILAS_defs.h"
 #include "RADIO_LORA_defs.h"
@@ -55,10 +56,6 @@ const char tipos_de_dados[TOTAL_TIPO_DADOS] = {TIPO_DADO_LORAWAN_RECEBIDO_OU_ESC
 /* Variável com header dos dados recebidos */
 THeader_dados header_dados;
 
-/* Event groups */
-#define EV_STACK_LORAWAN (1<<0)
-EventGroupHandle_t evt_stack_lorawan;
-
 /* Total de bytes a receber */
 unsigned char tamanho_a_receber = 0;
 
@@ -75,43 +72,15 @@ bool maquina_estados_recepcao(uint8_t byte_recebido);
 void escreve_serial_debug(char * ptr_string);
 void do_send(osjob_t* j, unsigned long total, unsigned long parcial);
 void configura_adc(void);
-void escreve_oled(int linha, unsigned char * pt_msg);
 
 /* Prototipos das tarefas */
+void task_oled( void *pvParameters );
 void task_serial_rasppi( void *pvParameters );
 void task_envio_lorawan( void *pvParameters );
-void task_stack_lorawan( void *pvParameters );
 
 /*
  * Implementações
  */
-/* Função: escreve no OLED
- * Parâmetros: - linha a ser escrita
- *             - ponteiro para mensagem a set escrita
- * Retorno: nenhum
- */ 
-void escreve_oled(int linha, unsigned char * pt_msg)
-{
-    int tamanho_msg = strlen((char *)pt_msg);
-    char linha_oled[21] = {0};
-    int linhas_px[6] = { OLED_LINHA_1,
-                         OLED_LINHA_2,
-                         OLED_LINHA_3,
-                         OLED_LINHA_4,
-                         OLED_LINHA_5,
-                         OLED_LINHA_6 };
-
-    if (tamanho_msg > 20)
-        tamanho_msg = 20;
-
-    display.fillRect(0, linhas_px[linha-1], display.width(), 10, SSD1306_BLACK);
-    display.display();        
-        
-    memcpy(linha_oled, pt_msg, tamanho_msg);
-    display.setCursor(0,linhas_px[linha-1]);
-    display.println(linha_oled);
-    display.display();        
-}
  
 /* Função: calcula o checksum dos dados a serem enviados
  * Parâmetros: ponteiro para os dados e quantidade de bytes para considerar no cálculo
@@ -469,7 +438,7 @@ void setup()
         
         display.clearDisplay();
         display.drawBitmap(0, 0, lorawan_logo, 128, 64, WHITE);
-        display.display();
+        display.display();        
     }
     
     /* Criacao dos semaforos */
@@ -486,8 +455,9 @@ void setup()
     tamanho_item_fila = sizeof(THeader_dados) + TAMANHO_MAXIMO_DADOS + 1; //+1 devido ao byte de tamanho
     xQueue_dados_lorawan = xQueueCreate(TAMANHO_FILA_DADOS_LORAWAN_DOWNLINK, tamanho_item_fila);  
     xQueue_lorawan_downlink = xQueueCreate(TAMANHO_FILA_DADOS_LORAWAN_UPLINK, tamanho_item_fila);
-   
-    if ( (xQueue_dados_lorawan == NULL) || (xQueue_lorawan_downlink == NULL) )
+    xQueue_display = xQueueCreate(1, sizeof( TTela_display ));
+
+    if ( (xQueue_dados_lorawan == NULL) || (xQueue_lorawan_downlink == NULL) || (xQueue_display == NULL) )
     {
         Serial.println("[ERRO] Nao e possivel criar uma ou mais filas. ESP32 reiniciara em 1s...");
         delay(1000);
@@ -497,18 +467,24 @@ void setup()
     /* Inicia o Task WDT */
     esp_task_wdt_init(TEMPO_WATCHDOG_SEGUNDOS, true); 
 
-    /* Cria event bit para stack lorawan */
-    evt_stack_lorawan = xEventGroupCreate();
-
     /* Criação das tarefas */
-    xTaskCreatePinnedToCore(
+    xTaskCreate(
     task_serial_rasppi               
     , "serial"                     
     ,  STACK_SIZE_SERIAL_RASPPI      
     ,  NULL                       
     ,  PRIO_SERIAL_RASPPI     
+    ,  NULL);                    
+
+    /* Criação das tarefas */
+    xTaskCreatePinnedToCore(
+    task_oled               
+    , "task_oled"                     
+    ,  STACK_SIZE_OLED      
+    ,  NULL                       
+    ,  PRIO_OLED     
     ,  NULL
-    , 1);                    
+    ,  1);
 
     xTaskCreate(
     task_envio_lorawan               
@@ -517,14 +493,6 @@ void setup()
     ,  NULL                       
     ,  PRIO_LORAWAN     
     ,  NULL);        
-
-    xTaskCreate(
-    task_stack_lorawan               
-    , "stack_lwn"                     
-    ,  STACK_SIZE_STACK_LORAWAN      
-    ,  NULL                       
-    ,  PRIO_STACK_LORAWAN     
-    ,  NULL);   
 }
 
 void loop() 
@@ -535,6 +503,40 @@ void loop()
 /*
  * Implementação das tarefas
  */
+/* Tarefa responsável por atualizar display OLED */
+void task_oled( void *pvParameters )
+{
+    TTela_display tela_display;
+
+    /* Habilita o monitoramento do Task WDT nesta tarefa */
+    esp_task_wdt_add(NULL); 
+            
+    while(1)
+    {
+        /* Escreve as linhas */
+        if (xQueueReceive(xQueue_display, (void *)&tela_display, TICKS_ESPERA_LEITURA_FILAS) == pdTRUE) 
+        {
+            display.clearDisplay();
+            display.setTextColor(WHITE);
+            display.setCursor(0,OLED_LINHA_1);
+            display.println(tela_display.linha1);
+            display.setCursor(0,OLED_LINHA_2);
+            display.print(tela_display.linha2);
+            display.setCursor(0,OLED_LINHA_3);
+            display.print(tela_display.linha3);
+            display.setCursor(0,OLED_LINHA_4);
+            display.print(tela_display.linha4);
+            display.setCursor(0,OLED_LINHA_5);
+            display.print(tela_display.linha5);
+            display.setCursor(0,OLED_LINHA_6);
+            display.print(tela_display.linha6);            
+            display.display();
+        }
+
+        esp_task_wdt_reset();
+        vTaskDelay( TEMPO_REFRESH_DISPLAY / portTICK_PERIOD_MS ); 
+    }
+}
 
 /* Tarefa responsável por comunicar via serial com Raspberry Pi */ 
 void task_serial_rasppi( void *pvParameters )
@@ -556,9 +558,13 @@ void task_serial_rasppi( void *pvParameters )
     unsigned char retorno_uplink_lorawan[7] = {'E', 'N', 'V', 'I', 'A', 'D', 'O'};
     char array_dados_uplink[TAMANHO_MAXIMO_DADOS + 1] = {0};
     unsigned char buffer_display_dac[50] = {0};
+    TTela_display tela_display;
+    BaseType_t resultado_envio_fila_display;
     
     /* Habilita o monitoramento do Task WDT nesta tarefa */
     esp_task_wdt_add(NULL);
+
+    memset((unsigned char *)&tela_display, 0x00, sizeof(TTela_display));
 
     while(1)
     {
@@ -602,27 +608,51 @@ void task_serial_rasppi( void *pvParameters )
                         break;
 
                     case TIPO_DADO_OLED_LINHA_1:
-                        escreve_oled(1,array_dados);
+                        sprintf(tela_display.linha1, "%s", array_dados);
+                        do 
+                        {
+                            resultado_envio_fila_display = xQueueSend(xQueue_display, (void *)&tela_display, TICKS_ESPERA_ESCRITA_FILAS);
+                        }while (resultado_envio_fila_display != pdTRUE);
                         break;    
 
                     case TIPO_DADO_OLED_LINHA_2:
-                        escreve_oled(2,array_dados);
+                        sprintf(tela_display.linha2, "%s", array_dados);
+                        do 
+                        {
+                            resultado_envio_fila_display = xQueueSend(xQueue_display, (void *)&tela_display, TICKS_ESPERA_ESCRITA_FILAS);
+                        }while (resultado_envio_fila_display != pdTRUE);
                         break;    
                         
                     case TIPO_DADO_OLED_LINHA_3:
-                        escreve_oled(3,array_dados);
+                        sprintf(tela_display.linha3, "%s", array_dados);
+                        do 
+                        {
+                            resultado_envio_fila_display = xQueueSend(xQueue_display, (void *)&tela_display, TICKS_ESPERA_ESCRITA_FILAS);
+                        }while (resultado_envio_fila_display != pdTRUE);
                         break;    
 
                     case TIPO_DADO_OLED_LINHA_4:
-                        escreve_oled(4,array_dados);
+                        sprintf(tela_display.linha4, "%s", array_dados);
+                        do 
+                        {
+                            resultado_envio_fila_display = xQueueSend(xQueue_display, (void *)&tela_display, TICKS_ESPERA_ESCRITA_FILAS);
+                        }while (resultado_envio_fila_display != pdTRUE);
                         break;    
 
                     case TIPO_DADO_OLED_LINHA_5:
-                        escreve_oled(5,array_dados);
+                        sprintf(tela_display.linha5, "%s", array_dados);
+                        do 
+                        {
+                            resultado_envio_fila_display = xQueueSend(xQueue_display, (void *)&tela_display, TICKS_ESPERA_ESCRITA_FILAS);
+                        }while (resultado_envio_fila_display != pdTRUE);
                         break;    
 
                     case TIPO_DADO_OLED_LINHA_6:
-                        escreve_oled(6,array_dados);
+                        sprintf(tela_display.linha6, "%s", array_dados);
+                        do 
+                        {
+                            resultado_envio_fila_display = xQueueSend(xQueue_display, (void *)&tela_display, TICKS_ESPERA_ESCRITA_FILAS);
+                        }while (resultado_envio_fila_display != pdTRUE);
                         break;    
 
                     case TIPO_DADO_ESCRITA_DAC:
@@ -759,11 +789,10 @@ void task_envio_lorawan( void *pvParameters )
     /* Habilita o monitoramento do Task WDT nesta tarefa */
     esp_task_wdt_add(NULL);
 
-    /* Informa que o stack lorawan pode rodar */
-    xEventGroupSetBits(evt_stack_lorawan, EV_STACK_LORAWAN);
-
     while(1)
     {
+        os_runloop_once();
+        
         /* Se há ao menos um item na fila, faz o envio LoRaWAN */
         if( xQueueReceive(xQueue_dados_lorawan, &( array_dados_lorawan ), TICKS_ESPERA_LEITURA_FILAS) == pdPASS )
         {
@@ -771,36 +800,6 @@ void task_envio_lorawan( void *pvParameters )
         }
               
         /* Alimenta watchdog e aguarda 1 tick para próximo ciclo */
-        esp_task_wdt_reset();
-        vTaskDelay( 1 / portTICK_PERIOD_MS );  
-    }
-}
-
-/* Tarefa responsável por rodar stack lorawan */
-void task_stack_lorawan( void *pvParameters )
-{
-    EventBits_t evbits_stack_lorawan;
-    
-    /* Habilita o monitoramento do Task WDT nesta tarefa */
-    esp_task_wdt_add(NULL);
-
-    /* Aguarda hora para rodar o stack lorawan */
-    do
-    {
-        evbits_stack_lorawan = xEventGroupWaitBits(evt_stack_lorawan,   //handler do event group
-                                                   EV_STACK_LORAWAN,    //Máscara com GPIO a ser considerado
-                                                   pdTRUE,              //Limpa automaticamente o bit ao retornar
-                                                   pdFALSE,             //Retorna quando qualquer um dos bits for setado 
-                                                   pdMS_TO_TICKS(10));  //Aguarda por até 10ms para o bit ser setado    
-    
-        esp_task_wdt_reset();
-    }while( (evbits_stack_lorawan & EV_STACK_LORAWAN) == 0);
-
-    escreve_serial_debug("Stack lorawan rodando..."); 
-
-    while(1)
-    {
-        os_runloop_once();
         esp_task_wdt_reset();
         vTaskDelay( 1 / portTICK_PERIOD_MS );  
     }

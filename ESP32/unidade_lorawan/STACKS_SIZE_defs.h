@@ -2,6 +2,7 @@
 #ifndef STACKS_SIZE_DEFS_H
 #define STACKS_SIZE_DEFS_H
 
+#define STACK_SIZE_OLED                  4096
 #define STACK_SIZE_LORAWAN               4096
 #define STACK_SIZE_STACK_LORAWAN         4096
 #define STACK_SIZE_SERIAL_RASPPI         8192

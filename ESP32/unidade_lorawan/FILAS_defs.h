@@ -16,5 +16,8 @@ QueueHandle_t xQueue_dados_lorawan;
 /* Fila dos dados de downlink do LoRaWAN */
 QueueHandle_t xQueue_lorawan_downlink;
 
+/* Fila de dados a serem escritos no display */
+QueueHandle_t xQueue_display;
+
 
 #endif
