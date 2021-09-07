@@ -1,4 +1,11 @@
-16937062617946358
+16946812030508227
+3296W-1-103
+TRIM_3296W-1-103
+
+
+0
+3
+3
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
@@ -46871,6 +46878,13 @@ Fuse Fuseholder TR5 Littelfuse/Wickmann No. 460 No560
 0
 2
 2
+HLK-5M05
+CONV_HLK-5M05
+
+
+0
+4
+4
 Heatsink
 Heatsink_35x26mm_1xFixation3mm_Fischer-SK486-35
 Heatsink, 35mm x 26mm, 1x Fixation 3mm, Fischer SK486-35
@@ -75256,6 +75270,13 @@ varistor SIOV
 0
 2
 2
+esp32_devkit_v1
+ESP32-DEVKITV1
+
+
+0
+30
+30
 esp32_devkit_v1_doit
 esp32_devkit_v1_doit
 ESPWROOM32, ESP32, 30 GPIOs version
@@ -75263,6 +75284,13 @@ ESPWROOM32, ESP32, 30 GPIOs version
 0
 30
 30
+filtro_10mH
+IND_BU9-103R25BL
+
+
+0
+4
+4
 fqp30n06l
 TO220V
 <b>TO 200 vertical</b>
@@ -75270,6 +75298,13 @@ TO220V
 0
 3
 3
+heltec_wifi_lora_V2
+Heltec_WiFi_LoRa_V2
+Heltec WiFi LoRa V1 Footprint
+
+0
+36
+36
 heltec_wifi_lora_v1
 Arduino_UNO_R3_OnlyMountingHoles
 Arduino UNO R3, http://www.mouser.com/pdfdocs/Gravitech_Arduino_Nano3_0.pdf
@@ -75291,6 +75326,13 @@ CLIFF_FC68131
 0
 3
 3
+libs_kicad
+logo_provider_controls
+
+
+0
+0
+0
 logo_aquafish
 logo_aquafish
 
