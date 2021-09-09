@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>496</width>
-    <height>536</height>
+    <width>494</width>
+    <height>597</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -466,7 +466,7 @@
       <x>10</x>
       <y>270</y>
       <width>231</width>
-      <height>121</height>
+      <height>181</height>
      </rect>
     </property>
     <property name="title">
@@ -477,12 +477,12 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>171</width>
+       <width>211</width>
        <height>17</height>
       </rect>
      </property>
      <property name="text">
-      <string>Mensagem para enviar:</string>
+      <string>Mensagem para enviar (uplink):</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btnEnvia_msg_Lorawan">
@@ -511,12 +511,38 @@
       <number>30</number>
      </property>
     </widget>
+    <widget class="QLabel" name="label_13">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>130</y>
+       <width>221</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Mensagem recebida (downlink):</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblMsg_downlink_Lorawan">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>150</y>
+       <width>211</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_6">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>390</y>
+      <y>460</y>
       <width>481</width>
       <height>91</height>
      </rect>
@@ -557,7 +583,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>496</width>
+     <width>494</width>
      <height>22</height>
     </rect>
    </property>

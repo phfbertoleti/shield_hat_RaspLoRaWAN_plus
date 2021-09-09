@@ -16,6 +16,9 @@
 #include <QDesktopServices>
 #include <QUrl>
 
+#define TOPICO_SUB_DOWNLINK_LORAWAN     "mqtt_lorawan_downlink_esp32"
+#define TOPICO_SUB_LEITURA_ADCS         "mqtt_adc_para_rasppi"
+
 QMqttClient *m_client;
 
 Principal::Principal(QWidget *parent)
@@ -35,12 +38,18 @@ Principal::Principal(QWidget *parent)
     /* Quando uma mensagem for recebida, faz o tratamento */
     connect(m_client, &QMqttClient::messageReceived, this, [this](const QByteArray &message, const QMqttTopicName &topic) {
         /* Leitura de ADCs */
-        if (QString::compare(topic.name(), "mqtt_adc_para_rasppi", Qt::CaseInsensitive) == 0)
+        if (QString::compare(topic.name(), TOPICO_SUB_LEITURA_ADCS, Qt::CaseInsensitive) == 0)
         {
             QList<QByteArray> leituras_adc = message.split(';');
             ui->lblADC1->setText(leituras_adc[0]+"V");
             ui->lblADC2->setText(leituras_adc[1]+"V");
             ui->lblADC3->setText(leituras_adc[2]+"V");
+        }
+
+        /* Callback de downlink LoRaWAN */
+        if (QString::compare(topic.name(), TOPICO_SUB_DOWNLINK_LORAWAN, Qt::CaseInsensitive) == 0)
+        {
+            ui->lblMsg_downlink_Lorawan->setText(message);
         }
     });
 }
@@ -84,8 +93,8 @@ void Principal::brokerConnected()
     ui->lblStatus_MQTT->setText("Conectado");
 
     /* Faz subscribe nos topicos */
-    QString topico_leitura_adcs = "mqtt_adc_para_rasppi";
-    QString topico_downlink_lorawan = "mqtt_lorawan_downlink_esp32";
+    QString topico_leitura_adcs = TOPICO_SUB_LEITURA_ADCS;
+    QString topico_downlink_lorawan = TOPICO_SUB_DOWNLINK_LORAWAN;
     m_client->subscribe(topico_leitura_adcs);
     m_client->subscribe(topico_downlink_lorawan);
 }

@@ -555,7 +555,6 @@ void task_serial_rasppi( void *pvParameters )
     float tensao_adc_2;
     char dados_adc[15];
     char cks_calculado;    
-    unsigned char retorno_uplink_lorawan[7] = {'E', 'N', 'V', 'I', 'A', 'D', 'O'};
     char array_dados_uplink[TAMANHO_MAXIMO_DADOS + 1] = {0};
     unsigned char buffer_display_dac[50] = {0};
     TTela_display tela_display;
@@ -586,24 +585,6 @@ void task_serial_rasppi( void *pvParameters )
                         memcpy(array_dados_lorawan+1, array_dados, sizeof(array_dados));
                         xQueueSend( xQueue_dados_lorawan, (void *) &array_dados_lorawan, TICKS_ESPERA_ESCRITA_FILAS);
                         escreve_serial_debug("Dados LoRaWAN colocados na fila");
-
-                        /* Envio para Raspberry Pi */
-                        header_dados_para_rasppi.byte_sincronia_1 = BYTE_SINCRONIA_1;
-                        header_dados_para_rasppi.byte_sincronia_2 = BYTE_SINCRONIA_2;
-                        header_dados_para_rasppi.byte_sincronia_3 = BYTE_SINCRONIA_3;
-                        header_dados_para_rasppi.byte_sincronia_4 = BYTE_SINCRONIA_4;
-                        header_dados_para_rasppi.byte_sincronia_5 = BYTE_SINCRONIA_5;
-                        header_dados_para_rasppi.byte_sincronia_6 = BYTE_SINCRONIA_6;
-                        header_dados_para_rasppi.tipo_de_dados = TIPO_DADO_LORAWAN_RECEBIDO_OU_ESCRITO;
-                        header_dados_para_rasppi.tamanho = 0x07;
-                        
-                        cks_calculado = calcula_checksum(retorno_uplink_lorawan, sizeof(retorno_uplink_lorawan));
- 
-                        memcpy(array_dados_uplink_lorawan, (unsigned char *)&header_dados_para_rasppi, sizeof(THeader_dados) );
-                        memcpy(array_dados_uplink_lorawan + sizeof(THeader_dados), retorno_uplink_lorawan, sizeof(retorno_uplink_lorawan) );
-                        memcpy(array_dados_uplink_lorawan + sizeof(THeader_dados) + sizeof(retorno_uplink_lorawan), &cks_calculado, 1 );                        
-
-                        Serial1.write(array_dados_uplink_lorawan, sizeof(array_dados_uplink_lorawan));
                         
                         break;
 
